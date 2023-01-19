@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="787b471e-f3d9-480a-a021-2ee39e6269ba" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<configuration doc:name="Configuration" doc:id="94f61692-5f1d-4fe4-ac4f-67b35d09a51a" defaultErrorHandler-ref="globalError_Handler" />
+	<flow name="err-demoFlow" doc:id="3e5c4273-093e-4f27-84fa-a67aabe217f6" >
+		<http:listener doc:name="Listener" doc:id="4ca8022a-b84f-480d-ab20-71e02262398d" config-ref="HTTP_Listener_config" path="/er">
+			<http:response statusCode="#[vars.httpStatus default 200]" />
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="59bb3975-f33d-4120-afdf-0a7ff07039e4" />
+		<choice doc:name="Choice" doc:id="78007e83-c1ac-4a6e-967a-4943599932ca" >
+			<when expression="#[sizeOf(payload)&gt;1]">
+				<raise-error doc:name="Raise error" doc:id="1aa112ba-c22c-4aa0-8863-7651185d6961" type="APP:SIZE ERROR"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="7431895f-7a64-4051-9c53-ec021676576f" />
+			</otherwise>
+		</choice>
+		<try doc:name="Try" doc:id="eba3b1c9-c1df-4ed7-bba2-c6952a3dc570" >
+			<http:request method="GET" doc:name="Request" doc:id="cb0845d6-05bb-4e75-a0dd-91657d63ebe8" url="abcd.com" >
+				<error-mapping sourceType="HTTP:CONNECTIVITY" targetType="APP:DEMO" />
+			</http:request>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="001c446d-82a3-4858-9010-5b02bef1ebc1" type="APP:DEMO" when="#[sizeOf(payload)&lt;3]">
+					<set-payload value="#[payload]" doc:name="Set Payload" doc:id="eb7db92f-4889-46d7-91d8-2d5f8870f049" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="Logger" doc:id="29b33d3f-f5cd-4461-ae9a-752027358373" />
+	</flow>
+</mule>
